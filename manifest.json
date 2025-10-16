@@ -1,0 +1,2 @@
+{
+"name":"School Course App","short_name":"SchoolApp","description":"A modern school learning app with courses, quizzes, and live classes.","start_url":"splash.html","display":"standalone","background_color":"#2196f3","theme_color":"#2196f3","orientation":"portrait","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3135/3135755.png","sizes":"192x192","type":"image/png"},{"src":"https://cdn-icons-png.flaticon.com/512/3135/3135755.png","sizes":"512x512","type":"image/png"}]}
