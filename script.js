@@ -1,4 +1,4 @@
 function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('active');}
-function loginUser(){var e=document.getElementById('email').value,t=document.getElementById('password').value;e&&t?(localStorage.setItem('loggedIn','true'),window.location.href='index.html'):alert('Please fill both fields');}
+function loginUser(){var e=document.getElementById('email').value,t=document.getElementById('password').value;e&&t?(localStorage.setItem('loggedIn','true'),window.location.href='home.html'):alert('Please fill both fields');}
 function logout(){localStorage.removeItem('loggedIn');window.location.href='login.html';}
 window.addEventListener('load',()=>{var e=['index.html','course.html','quiz.html','live.html'],t=window.location.pathname.split('/').pop();e.includes(t)&&'true'!==localStorage.getItem('loggedIn')&&(window.location.href='login.html');});
