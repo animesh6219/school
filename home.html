@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ideal Academy – Growth Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --md-primary: #1976D2;
+      --md-primary-2: #1565C0;
+      --surface: #ffffff;
+      --bg: #F3F6F9;
+      --on-surface: #0f1724;
+      --muted: #58616a;
+      --border: rgba(15,23,36,0.08);
+      --radius: 12px;
+      --card-radius: 14px;
+      --shadow-1: 0 6px 18px rgba(16,24,40,0.06);
+      --shadow-2: 0 10px 30px rgba(16,24,40,0.08);
+      --glass: rgba(255,255,255,0.6);
+      --blue-light: #E3F2FD;
+      --blue-50: #BBDEFB;
+    }
+    .dark {
+      --surface: #16181a;
+      --bg: #0b0c0d;
+      --on-surface: #e6eef8;
+      --muted: #9aa3ab;
+      --border: rgba(255,255,255,0.06);
+      --glass: rgba(24,24,24,0.5);
+      --shadow-1: 0 6px 18px rgba(0,0,0,0.6);
+      --shadow-2: 0 10px 30px rgba(0,0,0,0.6);
+      --blue-light: #1a237e;
+      --blue-50: #283593;
+    }
+    * { box-sizing: border-box; }
+    html,body { height:100%; }
+    body{
+      margin:0;
+      font-family: 'Roboto', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, var(--bg), #e9eef8);
+      color: var(--on-surface);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding-bottom: 96px;
+      transition: background .3s ease, color .3s ease;
+    }
+    .appbar {
+      position: sticky;
+      top:0;
+      z-index:1200;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 12px 18px;
+      background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+      border-bottom: none;
+      box-shadow: 0 4px 20px rgba(25,118,210,0.3);
+      backdrop-filter: blur(10px);
+      color: white;
+    }
+    .appbar .left, .appbar .center, .appbar .right {
+      display:flex; align-items:center; gap:10px;
+    }
+    .appbar .center { flex:1; justify-content:center; }
+    .title { font-weight:700; font-size:1.125rem; color:white; letter-spacing:0.2px; }
+    .icon-btn {
+      display:inline-flex;
+      width:44px;height:44px;
+      align-items:center;justify-content:center;
+      border-radius:10px;
+      cursor:pointer;
+      user-select:none;
+      position:relative;
+      overflow:hidden;
+      border: none;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      transition: all .2s ease;
+    }
+    .icon-btn .material-icons-outlined { font-size:20px; color:white; }
+    .icon-btn:hover { background: rgba(255,255,255,0.25); transform: translateY(-2px); }
+    .popup {
+      position: absolute;
+      top:58px;
+      right:8px;
+      min-width:200px;
+      background: rgba(255,255,255,0.95);
+      border-radius:12px;
+      box-shadow: var(--shadow-2);
+      border:1px solid var(--border);
+      display:none;
+      z-index:1400;
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+    .popup.show { display:block; }
+    .popup .item { display:flex; align-items:center; gap:12px; padding:10px 12px; cursor:pointer; }
+    .popup .item:hover { background: var(--blue-light); }
+    .popup .item .material-icons-outlined { color:var(--muted); }
+    .popup .item span { color:var(--on-surface); font-weight:500; }
+    .container {
+      max-width:1200px;
+      margin: 18px auto;
+      padding: 0 18px;
+    }
+    .layout {
+      display:grid;
+      grid-template-columns: 300px 1fr;
+      gap:20px;
+      align-items:start;
+    }
+    .sidebar {
+      background: rgba(255,255,255,0.8);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: 0 8px 32px rgba(25,118,210,0.1);
+      height: calc(100vh - 110px);
+      position: sticky;
+      top: 72px;
+      overflow:auto;
+      border: 1px solid rgba(25,118,210,0.2);
+      backdrop-filter: blur(10px);
+    }
+    .dark .sidebar {
+      background: rgba(22,24,26,0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar .close-top { display:flex; justify-content:flex-end; }
+    .sidebar .close-top .icon-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+    }
+    .profile {
+      display:flex; align-items:center; gap:12px; padding:8px 6px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+    }
+    .profile .photo {
+      width:76px;height:76px;border-radius:50%; overflow:hidden; flex:0 0 76px;
+      border: 3px solid rgba(0,0,0,0.04);
+    }
+    .profile .photo img{ width:100%;height:100%;object-fit:cover; display:block;}
+    .profile .info { display:flex; flex-direction:column; gap:6px; }
+    .name-row { display:flex; align-items:center; gap:8px; font-weight:700; color:var(--on-surface); }
+    .sidebar hr { border: none; height:1px; background: var(--border); margin:12px 0; border-radius:2px; }
+    .nav-list { display:flex; flex-direction:column; gap:8px; padding:6px; }
+    .nav-item {
+      display:flex; align-items:center; gap:14px;
+      padding:10px 12px; border-radius:10px; cursor:pointer;
+      color:var(--on-surface); font-weight:600;
+      border:1px solid transparent;
+      transition: all .18s ease;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,0.01));
+      text-decoration:none;
+    }
+    .nav-item .material-icons-outlined { font-size:20px; color:var(--md-primary-2); }
+    .nav-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-1); border-color: var(--border); background: var(--blue-light); }
+    .nav-item.active { background: linear-gradient(90deg,var(--md-primary), #4a90e2); color:white; border-color: transparent; }
+    .nav-item.active .material-icons-outlined{ color:white; }
+    .sidebar .spacer { height:35px; }
+    .app-version { margin-top:12px; font-size:0.85rem; color:var(--muted); text-align:center; padding:8px 0; border-top:1px dashed var(--border); margin-top:18px; }
+    .main { display:flex; flex-direction:column; gap:18px; }
+    .welcome {
+      background: rgba(255,255,255,0.8);
+      border-radius: var(--card-radius);
+      padding: 18px;
+      box-shadow: 0 8px 32px rgba(25,118,210,0.1);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      border:1px solid rgba(25,118,210,0.2);
+      min-height:140px;
+      backdrop-filter: blur(10px);
+    }
+    .dark .welcome {
+      background: rgba(22,24,26,0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .welcome .info { flex:1 1 60%; }
+    .welcome h2 { margin:0 0 6px; font-size:1.25rem; color:var(--on-surface); }
+    .welcome p { margin:4px 0; color:var(--muted); font-size:0.95rem; }
+    .student-photo { width:128px;height:128px;border-radius:50%; overflow:hidden; flex:0 0 128px; border: 4px solid rgba(0,0,0,0.04); }
+    .student-photo img { width:100%;height:100%;object-fit:cover; display:block; }
+    .insights {
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:18px;
+      align-items:start;
+    }
+    .card {
+      background: rgba(255,255,255,0.8);
+      border-radius: 12px;
+      padding:14px;
+      box-shadow: 0 8px 32px rgba(25,118,210,0.1);
+      border:1px solid rgba(25,118,210,0.2);
+      backdrop-filter: blur(10px);
+    }
+    .dark .card {
+      background: rgba(22,24,26,0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .chart-card { padding:14px; display:flex; flex-direction:column; gap:10px; }
+    .card .title { font-weight:700; color:var(--on-surface); margin-bottom:6px; }
+    .stat-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; }
+    .stat {
+      background: linear-gradient(135deg, rgba(25,118,210,0.1), rgba(25,118,210,0.05));
+      padding:10px; border-radius:10px; display:flex; align-items:center; gap:12px; border:1px solid rgba(25,118,210,0.2);
+      backdrop-filter: blur(10px);
+    }
+    .stat .num { font-weight:800; font-size:1.15rem; color:var(--md-primary-2); }
+    .stat .label { color:var(--muted); font-weight:600; }
+    .right-column { display:flex; flex-direction:column; gap:12px; }
+    .upcoming .item { display:flex; gap:12px; align-items:center; padding:10px; border-radius:10px; background: rgba(25,118,210,0.08); margin-bottom:8px; border:1px solid rgba(25,118,210,0.2); }
+    .upcoming .item .material-icons-outlined { font-size:20px; color:var(--md-primary); }
+    .bottom-nav {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(820px, calc(100% - 28px));
+      background: rgba(255,255,255,0.9);
+      border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(25,118,210,0.15);
+      display:flex;
+      justify-content:space-around;
+      padding:8px;
+      z-index:1500;
+      align-items:center;
+      gap:6px;
+      border:1px solid rgba(25,118,210,0.2);
+      backdrop-filter: blur(10px);
+    }
+    .dark .bottom-nav {
+      background: rgba(22,24,26,0.9);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .bottom-nav .nav { display:flex; gap:6px; width:100%; justify-content:space-around; }
+    .bottom-nav .tab {
+      display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 12px; border-radius:10px; cursor:pointer; color:var(--muted);
+      min-width:60px; text-decoration:none; font-weight:600;
+      border:1px solid transparent;
+    }
+    .bottom-nav .tab.active { color: var(--md-primary); background: rgba(25,118,210,0.1); border-color: var(--border); }
+    .ripple { position:absolute; border-radius:50%; transform: scale(0); animation: ripple .6s linear; background: rgba(0,0,0,0.12); pointer-events:none; }
+    @keyframes ripple { to { transform: scale(4); opacity:0; } }
+    .chart-container {
+      position: relative;
+      height: 200px;
+      width: 100%;
+    }
+    .chart-container-sm {
+      position: relative;
+      height: 140px;
+      width: 100%;
+    }
+    .chart-container-radar {
+      position: relative;
+      height: 180px;
+      width: 100%;
+    }
+    @media (max-width: 1040px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed;
+        left: -340px;
+        top: 0;
+        width: 300px;
+        height: 100%;
+        z-index:1600;
+        transition: left .28s ease;
+        margin:0;
+        border-radius:0;
+        box-shadow: 0 20px 60px rgba(2,6,23,0.5);
+        padding-top: 20px;
+        border-left:1px solid var(--border);
+      }
+      .sidebar.open { left: 0; }
+      .sidebar-overlay { position:fixed; inset:0; background: rgba(0,0,0,0.45); display:none; z-index:1500; }
+      .sidebar-overlay.show { display:block; }
+      .insights { grid-template-columns: 1fr; }
+      .welcome { padding:12px; flex-direction:row; }
+      .student-photo { width:100px; height:100px; flex:0 0 100px; }
+    }
+    @media (max-width:420px) {
+      .student-photo { width:92px; height:92px; }
+      .card { padding:10px; }
+      .popup { right:6px; top:56px; min-width:160px; }
+      .appbar .center { justify-content:flex-start; padding-left:8px; }
+    }
+    .muted { color:var(--muted); font-size:0.92rem; }
+    .small { font-size:0.85rem; color:var(--muted); }
+    .btn { background:var(--md-primary); color:white; padding:8px 12px; border-radius:10px; border:none; cursor:pointer; font-weight:700; box-shadow: var(--shadow-1); }
+  </style>
+</head>
+<body>
+  <header class="appbar" role="banner">
+    <div class="left">
+      <div class="icon-btn" id="menuBtn" title="Open menu" aria-label="Open menu">
+        <span class="material-icons-outlined">menu</span>
+      </div>
+    </div>
+    <div class="center">
+      <div class="title">Ideal Academy</div>
+    </div>
+    <div class="right" style="position:relative;">
+      <div class="icon-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+        <span class="material-icons-outlined" id="themeIcon">dark_mode</span>
+      </div>
+      <div class="icon-btn" id="moreBtn" title="More" aria-label="More">
+        <span class="material-icons-outlined">more_vert</span>
+      </div>
+      <div class="popup" id="morePopup" role="menu" aria-hidden="true">
+        <div class="item" onclick="alert('Notifications (demo)')">
+          <span class="material-icons-outlined">notifications</span>
+          <span>Notifications</span>
+        </div>
+        <div class="item" onclick="alert('Settings (demo)')">
+          <span class="material-icons-outlined">settings</span>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <div class="container">
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+        <div class="close-top">
+          <div class="icon-btn" id="sidebarCloseBtn" title="Close" style="margin-right:6px;">
+            <span class="material-icons-outlined">close</span>
+          </div>
+        </div>
+        <div class="profile" style="margin-top:4px;">
+          <div class="photo">
+            <img src="https://i.pravatar.cc/120" alt="Student photo">
+          </div>
+          <div class="info">
+            <div class="name-row">Rohan Kumar</div>
+            <div class="small muted">Rohan.Kumar@idealacademy.in</div>
+          </div>
+        </div>
+        <hr>
+        <nav class="nav-list" role="navigation" aria-label="Sidebar navigation">
+          <a href="index.html" class="nav-item active" id="nav-home">
+            <span class="material-icons-outlined">home</span>
+            <div>Home</div>
+          </a>
+          <a href="syllabus.html" class="nav-item" id="nav-syllabus">
+            <span class="material-icons-outlined">menu_book</span>
+            <div>Syllabus</div>
+          </a>
+          <a href="assignments.html" class="nav-item" id="nav-assignments">
+            <span class="material-icons-outlined">assignment</span>
+            <div>Assignments</div>
+          </a>
+          <a href="exams.html" class="nav-item" id="nav-exams">
+            <span class="material-icons-outlined">quiz</span>
+            <div>Exams</div>
+          </a>
+          <a href="fees.html" class="nav-item" id="nav-fees">
+            <span class="material-icons-outlined">payments</span>
+            <div>Fees Payment</div>
+          </a>
+        </nav>
+        <hr>
+        <div class="spacer"></div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div class="nav-item" onclick="logout()" id="nav-logout">
+            <span class="material-icons-outlined">logout</span>
+            <div>Logout</div>
+          </div>
+          <div class="app-version">Version 1.0.0</div>
+        </div>
+      </aside>
+
+      <main class="main" id="mainContent" aria-live="polite">
+        <section class="welcome" role="region" aria-label="Welcome area">
+          <div class="info">
+            <h2>Welcome, Rohan Kumar 👋</h2>
+            <p><strong>Father's Name:</strong> Rajesh Kumar</p>
+            <p><strong>Class:</strong> 9A &nbsp; | &nbsp; <strong>Roll No:</strong> 24</p>
+            <p class="muted" style="margin-top:8px;">This dashboard focuses on your child's overall growth – academic, attendance and wellbeing.</p>
+          </div>
+          <div class="student-photo" aria-hidden="true">
+            <img src="https://i.pravatar.cc/150" alt="Student photo">
+          </div>
+        </section>
+
+        <section class="insights" aria-label="Growth insights">
+          <div class="card chart-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="title">Growth Insights</div>
+              <div class="small muted">Updated: <span id="lastUpdated">-</span></div>
+            </div>
+
+            <div class="stat-grid" style="margin-bottom:12px;">
+              <div class="stat">
+                <div class="num" id="growthScore">0</div>
+                <div style="display:flex; flex-direction:column;">
+                  <div class="label">Overall Growth Score</div>
+                  <div class="small muted">Average performance</div>
+                </div>
+              </div>
+              <div class="stat">
+                <div class="num" id="trend">Stable</div>
+                <div style="display:flex; flex-direction:column;">
+                  <div class="label">Performance Trend</div>
+                  <div class="small muted">Last 8 weeks</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:12px; flex-direction:column;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <div style="font-weight:700;">Academic Performance</div>
+                  <div class="small muted">Quiz & Assignment scores</div>
+                </div>
+                <div class="chart-container">
+                  <canvas id="academicChart"></canvas>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="flex:1;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <div style="font-weight:700;">Attendance Trend</div>
+                    <div class="small muted">Weekly %</div>
+                  </div>
+                  <div class="chart-container-sm">
+                    <canvas id="attendanceChart"></canvas>
+                  </div>
+                </div>
+
+                <div style="width:220px;">
+                  <div style="font-weight:700; margin-bottom:8px;">Overall Profile</div>
+                  <div class="chart-container-radar">
+                    <canvas id="radarChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="right-column">
+            <div class="card">
+              <div class="title">Performance Summary</div>
+              <div id="performanceSummary" class="small muted" style="line-height:1.5;">
+                Generating insights...
+              </div>
+            </div>
+
+            <div class="card upcoming">
+              <div class="title">Upcoming Activities</div>
+              <div id="upcomingActivities">
+              </div>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
+    <div class="nav">
+      <a href="index.html" class="tab active" id="tab-home">
+        <span class="material-icons-outlined">home</span>
+        <div style="font-size:12px;">Home</div>
+      </a>
+      <a href="courses.html" class="tab" id="tab-courses">
+        <span class="material-icons-outlined">menu_book</span>
+        <div style="font-size:12px;">Courses</div>
+      </a>
+      <a href="quizzes.html" class="tab" id="tab-quizzes">
+        <span class="material-icons-outlined">quiz</span>
+        <div style="font-size:12px;">Quizzes</div>
+      </a>
+      <a href="live.html" class="tab" id="tab-live">
+        <span class="material-icons-outlined">live_tv</span>
+        <div style="font-size:12px;">Live</div>
+      </a>
+    </div>
+  </nav>
+
+  <script>
+    function createRipple(e) {
+      const btn = e.currentTarget;
+      const circle = document.createElement("span");
+      const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+      const radius = diameter / 2;
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${e.clientX - btn.getBoundingClientRect().left - radius}px`;
+      circle.style.top = `${e.clientY - btn.getBoundingClientRect().top - radius}px`;
+      circle.classList.add("ripple");
+      btn.appendChild(circle);
+      setTimeout(() => circle.remove(), 700);
+    }
+    document.querySelectorAll('.icon-btn').forEach(el => {
+      el.addEventListener('click', createRipple);
+    });
+
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    function openSidebar() {
+      if (window.innerWidth <= 1040) {
+        sidebar.classList.add('open');
+        overlay.classList.add('show');
+      }
+    }
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('show');
+    }
+    menuBtn.addEventListener('click', openSidebar);
+    sidebarCloseBtn.addEventListener('click', closeSidebar);
+    overlay.addEventListener('click', closeSidebar);
+
+    const moreBtn = document.getElementById('moreBtn');
+    const morePopup = document.getElementById('morePopup');
+    moreBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      morePopup.classList.toggle('show');
+    });
+    document.addEventListener('click', (ev) => {
+      if (!morePopup.contains(ev.target) && ev.target !== moreBtn && !moreBtn.contains(ev.target)) {
+        morePopup.classList.remove('show');
+      }
+    });
+
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    function applyTheme(dark) {
+      if (dark) {
+        document.documentElement.classList.add('dark');
+        themeIcon.textContent = 'light_mode';
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeIcon.textContent = 'dark_mode';
+      }
+    }
+    const saved = localStorage.getItem('ideal_theme_dark');
+    applyTheme(saved === '1');
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      applyTheme(!isDark);
+      localStorage.setItem('ideal_theme_dark', isDark ? '0' : '1');
+    });
+
+    function generateDemoData(weeksCount = 8) {
+      const weeks = [];
+      const now = new Date();
+      for (let i = weeksCount - 1; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i * 7);
+        weeks.push(d.toISOString().slice(0, 10));
+      }
+
+      const subjects = ['Math', 'Science', 'English'];
+      const tests = [];
+      weeks.forEach((week) => {
+        subjects.forEach(subject => {
+          const test = {
+            id: `test-${week}-${subject}`,
+            date: week,
+            subject,
+            score: Math.round(60 + Math.random() * 40),
+            maxScore: 100
+          };
+          tests.push(test);
+        });
+      });
+
+      const upcoming = [
+        { title: 'Math Test', date: addDaysISO(5), subject: 'Math', icon: 'quiz' },
+        { title: 'Science Quiz', date: addDaysISO(8), subject: 'Science', icon: 'quiz' },
+        { title: 'English Essay', date: addDaysISO(12), subject: 'English', icon: 'assignment' }
+      ];
+
+      return {
+        weeks,
+        tests,
+        upcoming,
+        lastUpdated: new Date().toLocaleString(),
+        subjects
+      };
+    }
+
+    function addDaysISO(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function initializeData() {
+      if (!localStorage.getItem('ideal_test_data')) {
+        const demo = generateDemoData();
+        localStorage.setItem('ideal_test_data', JSON.stringify(demo));
+      }
+    }
+
+    let testScoreChart = null;
+    let attendanceChartInst = null;
+    let radarChart = null;
+
+    function average(arr) {
+      return arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0;
+    }
+
+    function standardDeviation(arr) {
+      if (!arr.length) return 0;
+      const mean = average(arr);
+      const variance = arr.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / arr.length;
+      return Math.sqrt(variance);
+    }
+
+    function getTrend(scores) {
+      if (scores.length < 2) return 'Stable';
+      const recent = average(scores.slice(-3));
+      const earlier = average(scores.slice(-6, -3));
+      if (recent > earlier + 5) return 'Improving';
+      if (recent < earlier - 5) return 'Declining';
+      return 'Stable';
+    }
+
+    function renderCharts(data) {
+      document.getElementById('lastUpdated').textContent = data.lastUpdated;
+
+      const scores = data.tests.map(t => t.score);
+      const avgScore = average(scores);
+      
+      document.getElementById('growthScore').textContent = avgScore.toFixed(1) + '%';
+      document.getElementById('trend').textContent = getTrend(scores);
+
+      // Academic Performance Chart
+      const ctx1 = document.getElementById('academicChart').getContext('2d');
+      if (testScoreChart) testScoreChart.destroy();
+      const scoresByWeek = data.weeks.map(week => {
+        const weekTests = data.tests.filter(t => t.date === week);
+        return weekTests.length ? average(weekTests.map(t => t.score)) : null;
+      });
+      testScoreChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: data.weeks.map(w => w.slice(5)),
+          datasets: [{
+            label: 'Scores',
+            data: scoresByWeek,
+            borderColor: 'rgba(25,118,210,0.95)',
+            backgroundColor: 'rgba(25,118,210,0.12)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.04)' } }
+          }
+        }
+      });
+
+      // Attendance Chart
+      const ctx2 = document.getElementById('attendanceChart').getContext('2d');
+      if (attendanceChartInst) attendanceChartInst.destroy();
+      const attendanceData = data.weeks.map(() => Math.round(80 + Math.random() * 20));
+      attendanceChartInst = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: data.weeks.map(w => w.slice(5)),
+          datasets: [{
+            label: 'Attendance %',
+            data: attendanceData,
+            backgroundColor: 'rgba(32, 185, 137, 0.7)',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { max: 100, grid: { color: 'rgba(0,0,0,0.04)' } } }
+        }
+      });
+
+      // Radar Chart
+      const ctx3 = document.getElementById('radarChart').getContext('2d');
+      if (radarChart) radarChart.destroy();
+      radarChart = new Chart(ctx3, {
+        type: 'radar',
+        data: {
+          labels: ['Math', 'Science', 'English'],
+          datasets: [{
+            label: 'Performance',
+            data: [75, 80, 72],
+            borderColor: 'rgba(25,118,210,0.9)',
+            backgroundColor: 'rgba(25,118,210,0.18)',
+            pointRadius: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { r: { max: 100, grid: { color: 'rgba(0,0,0,0.04)' } } }
+        }
+      });
+
+      const consistency = standardDeviation(scores);
+      let summary = `Overall average score is ${avgScore.toFixed(1)}%. `;
+      if (consistency < 10) summary += 'Performance is very consistent. ';
+      else if (consistency < 20) summary += 'Performance is fairly consistent. ';
+      else summary += 'Performance varies. Consider more practice.';
+      
+      document.getElementById('performanceSummary').textContent = summary;
+
+      renderUpcoming(data.upcoming);
+    }
+
+    function renderUpcoming(list) {
+      const up = document.getElementById('upcomingActivities');
+      up.innerHTML = '';
+      if (!list || !list.length) {
+        up.innerHTML = '<div class="small muted">No upcoming activities</div>';
+        return;
+      }
+      list.forEach(it => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <span class="material-icons-outlined">${it.icon}</span>
+          <div>
+            <div style="font-weight:700;">${it.title}</div>
+            <div class="small muted">${it.date} (${it.subject})</div>
+          </div>`;
+        up.appendChild(div);
+      });
+    }
+
+    function logout() {
+      if (confirm('Logout from Ideal Academy?')) {
+        localStorage.removeItem('ideal_test_data');
+        location.reload();
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 1040) {
+        overlay.classList.remove('show');
+        sidebar.classList.remove('open');
+      }
+    });
+
+    initializeData();
+    const initialData = JSON.parse(localStorage.getItem('ideal_test_data'));
+    renderCharts(initialData);
+  </script>
+</body>
+</html>
